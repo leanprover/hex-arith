@@ -1,0 +1,16 @@
+name = "hex-arith-conformance"
+defaultTargets = ["HexArithConformance"]
+
+leanOptions = [
+  { name = "doc.verso", value = true },
+  { name = "doc.verso.suggestions", value = false },
+]
+
+
+[[require]]
+name = "HexArith"
+path = ".."
+
+[[lean_lib]]
+name = "HexArithConformance"
+globs = ["HexArith.Conformance", "HexArith.CrossCheck"]
