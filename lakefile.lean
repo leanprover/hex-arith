@@ -10,7 +10,15 @@ private def hexArithOTarget (pkg : Package) (src : String) : FetchM (Job FilePat
   let oFile := pkg.dir / defaultBuildDir / "HexArith" / "ffi" / s!"{stem}.o"
   let srcTarget ← inputTextFile <| pkg.dir / "HexArith" / "ffi" / src
   buildFileAfterDep oFile srcTarget fun srcFile => do
-    compileO oFile srcFile #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-O3"]
+    let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-O3"]
+    -- Mathlib's sandbox permits writes in the build directory, but not /tmp.
+    -- Set TMPDIR for this compiler process only, including compiler wrappers.
+    createParentDirs oFile
+    proc {
+      cmd := "cc"
+      args := #["-c", "-o", oFile.toString, srcFile.toString] ++ flags
+      env := #[("TMPDIR", some (← IO.FS.realPath (oFile.parent.getD ".")).toString)]
+    }
 
 extern_lib hexarithffi (pkg) := do
   let name := nameToStaticLib "hexarithffi"
