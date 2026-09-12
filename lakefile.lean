@@ -20,12 +20,13 @@ private def hexArithOTarget (pkg : Package) (src : String) : FetchM (Job FilePat
       env := #[("TMPDIR", some (← IO.FS.realPath (oFile.parent.getD ".")).toString)]
     }
 
-extern_lib hexarithffi (pkg) := do
+target hexarithffi pkg : FilePath := do
   let name := nameToStaticLib "hexarithffi"
-  let targets ← #["wide_arith.c", "mpz_gcdext.c"].mapM (hexArithOTarget pkg)
-  buildStaticLib (pkg.staticLibDir / name) targets
+  let oTargets ← #[ "wide_arith.c", "mpz_gcdext.c" ].mapM (hexArithOTarget pkg)
+  buildStaticLib (pkg.staticLibDir / name) oTargets
 
 @[default_target]
 lean_lib HexArith where
   precompileModules := true
   moreLinkArgs := #["-lgmp"]
+  moreLinkObjs := #[hexarithffi]
